@@ -1,47 +1,19 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/websocket"
 	"gocv.io/x/gocv"
 	"log"
-	"strings"
+	"time"
 )
 
-var vpath = "E:/go/src/go-h5-video-demo/data/vtest.avi"
-
-func playVideo()  {
-	w := gocv.NewWindow("video")
-
-	img := gocv.IMRead("./data/500w01.jpg",1)
-	for{
-		
-		w.IMShow(img)
-		w.WaitKey(1)
-	}
-
-}
-
-
 func main() {
-
-	go playVideo();
-
 	ws := websocket.New(websocket.DefaultGorillaUpgrader, websocket.Events{
 		websocket.OnNativeMessage: func(nsConn *websocket.NSConn, msg websocket.Message) error {
 			log.Printf("Server got: %s from [%s]", msg.Body, nsConn.Conn.ID())
-
-			ping := string(msg.Body)
-			pong := strings.Replace(ping,"？", "！", len(ping))
-			pong = strings.Replace(pong, "么","",len(pong))
-
-			mg := websocket.Message{
-				Body:[]byte(pong),
-				IsNative:true,
-			}
-
-			nsConn.Conn.Write(mg)
-
 			return nil
 		},
 	})
@@ -59,10 +31,37 @@ func main() {
 		log.Printf("Upgrade Error: %v", err)
 	}
 
+	go func() {
+		camera, err := gocv.VideoCaptureDevice(0)
+		if err != nil {
+			panic(err)
+		}
+
+		img := gocv.NewMat()
+
+		for {
+			camera.Read(&img)
+			data, err := gocv.IMEncode(".jpg", img)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				n := base64.StdEncoding.EncodedLen(len(data))
+				dst := make([]byte, n)
+				base64.StdEncoding.Encode(dst, data)
+				urldata := "data:image/jpeg;base64," + string(dst)
+				mg := websocket.Message{
+					Body:     []byte(urldata),
+					IsNative: true,
+				}
+				ws.Broadcast(nil, mg)
+			}
+			time.Sleep(time.Millisecond * time.Duration(50))
+		}
+	}()
 
 	app := iris.New()
-	app.HandleDir("/","./html")
-	app.Get("/msg", websocket.Handler(ws))
+	app.HandleDir("/", "./html")
+	app.Get("/video", websocket.Handler(ws))
 
 	app.Run(iris.Addr(":8080"))
 }

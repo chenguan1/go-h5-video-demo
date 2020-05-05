@@ -1,51 +1,38 @@
 <html>
 
 <head>
-    <title>Client Page</title>
+    <title>video</title>
 </head>
 
 <body style="padding:10px;">
-<input type="text" id="messageTxt" />
-<button type="button" id="sendBtn">Send</button>
-<div id="messages" style="width: 375px;margin:10 0 0 0px;border-top: 1px solid black;">
-</div>
+
+<img id="target" style="display:inline;"/>
+
+<canvas id="canvas" style="display:inline;"/>
 
 <script type="text/javascript">
     var HOST = "localhost:8080"
-    var messageTxt = document.getElementById("messageTxt");
-    var messages = document.getElementById("messages");
-    var sendBtn = document.getElementById("sendBtn")
 
-    w = new WebSocket("ws://" + HOST + "/msg");
+    w = new WebSocket("ws://" + HOST + "/video");
     w.onopen = function () {
         console.log("Websocket connection enstablished");
     };
 
     w.onclose = function () {
-        appendMessage("<div><center><h3>Disconnected</h3></center></div>");
+        console.log("Websocket disconnected");
+    };
+
+    var canvas = document.getElementById("canvas");
+    var img = new Image()
+    img.onload = function(){
+        canvas.width = img.width
+        canvas.height = img.height
+        canvas.getContext("2d").drawImage(img,0,0,img.width,img.height);
     };
     w.onmessage = function (message) {
-        appendMessage("<div> srv: " + message.data + "</div>");
+        img.src = message.data;
     };
 
-    sendBtn.onclick = function () {
-        myText = messageTxt.value;
-        messageTxt.value = "";
-
-        appendMessage("<div style='color: red'> me: " + myText + "</div>");
-        w.send(myText);
-    };
-
-    messageTxt.addEventListener("keyup", function (e) {
-        if (e.keyCode === 13) {
-            e.preventDefault();
-            sendBtn.click();
-        }
-    });
-
-    function appendMessage(messageDivHTML) {
-        messages.insertAdjacentHTML('afterbegin', messageDivHTML);
-    }
 </script>
 
 </body>
