@@ -2,7 +2,7 @@ var messageTxt = document.getElementById("messageTxt");
 var messages = document.getElementById("messages");
 var sendBtn = document.getElementById("sendBtn")
 
-w = new WebSocket("ws://" + HOST + "/my_endpoint");
+w = new WebSocket("ws://" + HOST + "/msg");
 w.onopen = function () {
     console.log("Websocket connection enstablished");
 };
@@ -13,9 +13,9 @@ w.onclose = function () {
 w.onmessage = function (message) {
     appendMessage("<div>" + message.data + "</div>");
 
-    sg = message.data.split(';')
+    /*sg = message.data.split(';')
     url = sg[sg.length-1]
-    urlToImage(url)
+    urlToImage(url)*/
 
 
 };
