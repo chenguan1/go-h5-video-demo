@@ -1,15 +1,10 @@
 <html>
-
 <head>
     <title>video</title>
 </head>
-
 <body style="padding:10px;">
-
 <img id="target" style="display:inline;"/>
-
 <canvas id="canvas" style="display:inline;"/>
-
 <script type="text/javascript">
     var HOST = "localhost:8080"
 
@@ -32,12 +27,7 @@
     w.onmessage = function (message) {
         img.src = message.data;
     };
-
 </script>
-
 </body>
-
-
-
 </html>
 
